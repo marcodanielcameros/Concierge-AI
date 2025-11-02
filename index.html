@@ -271,6 +271,36 @@
       color: white;
     }
 
+    .message.bot.loading .bubble {
+      background: rgba(15, 23, 42, 0.5);
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .message.bot .bubble.loading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .loading-indicator {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
     .chat-input {
       display: flex;
       gap: 10px;
@@ -487,6 +517,7 @@
     const chatBody = document.getElementById('chatBody');
     const chatForm = document.getElementById('chatForm');
     const chatInput = document.getElementById('chatInput');
+    const WELCOME_MESSAGE = 'Welcome to the Singapore Concierge! How can I assist you today?';
 
     function toggleChat() {
       const isCollapsed = chatLauncher.classList.contains('collapsed');
@@ -521,74 +552,34 @@
       chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-    function getHotelByName(input) {
-      return hotels.find(hotel => input.toLowerCase().includes(hotel.name.toLowerCase()));
+    function appendLoadingMessage() {
+      const message = document.createElement('div');
+      message.classList.add('message', 'bot', 'loading');
+      const roleLabel = document.createElement('div');
+      roleLabel.classList.add('role');
+      roleLabel.textContent = 'Concierge';
+      const bubble = document.createElement('div');
+      bubble.classList.add('bubble', 'loading');
+      bubble.innerHTML = '<span class="loading-indicator" aria-hidden="true"></span><span>Thinking...</span>';
+      message.appendChild(roleLabel);
+      message.appendChild(bubble);
+      chatBody.appendChild(message);
+      chatBody.scrollTop = chatBody.scrollHeight;
+      return message;
     }
 
-    function buildBreakdownText(hotel) {
-      const { room, taxes, services } = hotel.breakdown;
-      const total = room + taxes + services;
-      return `${hotel.name} comes to <strong>S$${total}</strong> per night: room S$${room}, taxes S$${taxes}, services S$${services}.`;
+    function respondWithWelcome() {
+      const loadingMessage = appendLoadingMessage();
+      setTimeout(() => {
+        const bubble = loadingMessage.querySelector('.bubble');
+        loadingMessage.classList.remove('loading');
+        bubble.classList.remove('loading');
+        bubble.innerHTML = WELCOME_MESSAGE;
+        chatBody.scrollTop = chatBody.scrollHeight;
+      }, 800);
     }
 
-    function getRecommendation(intent) {
-      switch (intent) {
-        case 'luxury':
-          return 'For a luxe stay, Marina Bay Sands and Capella Singapore both deliver iconic experiences with resort amenities.';
-        case 'budget':
-          return 'For budget-friendly yet stylish options, consider lyf Funan Singapore or YOTEL Singapore Orchard Road.';
-        case 'heritage':
-          return 'If you love heritage charm, The Fullerton Hotel and The Warehouse Hotel offer history-rich stays with modern comforts.';
-        default:
-          return 'Here are a few standouts: Marina Bay Sands for iconic skyline views, Capella Singapore for a secluded retreat, and YOTEL Singapore Orchard Road for smart value on Orchard Road.';
-      }
-    }
-
-    function detectIntent(message) {
-      const lower = message.toLowerCase();
-      if (/(breakdown|price|cost|tax)/.test(lower)) return 'price';
-      if (/(recommend|suggest|where should|best hotel|option)/.test(lower)) {
-        if (/(luxury|high-end|5 star|5-star)/.test(lower)) return 'luxury';
-        if (/(budget|cheap|affordable|value)/.test(lower)) return 'budget';
-        if (/(heritage|history|historic)/.test(lower)) return 'heritage';
-        return 'recommend';
-      }
-      if (/(book|reserve|availability|hold a room)/.test(lower)) return 'booking';
-      return 'general';
-    }
-
-    function buildResponse(message) {
-      const hotel = getHotelByName(message);
-      const intent = detectIntent(message);
-
-      if (intent === 'price' && hotel) {
-        return buildBreakdownText(hotel);
-      }
-
-      if (intent === 'price') {
-        return 'Let me know which hotel caught your eye and I\'ll walk you through the nightly rate, taxes, and service fees.';
-      }
-
-      if (intent === 'recommend') {
-        return getRecommendation();
-      }
-
-      if (['luxury', 'budget', 'heritage'].includes(intent)) {
-        return getRecommendation(intent);
-      }
-
-      if (intent === 'booking') {
-        return 'To reserve, tell me your preferred hotel and travel dates. I\'ll confirm availability, share the total price, and secure the room with your guest details.';
-      }
-
-      if (hotel) {
-        return `${hotel.name} is located in ${hotel.location} with an average rate of S$${hotel.price} per night. Need a price breakdown or want to reserve?`;
-      }
-
-      return 'Ask me for tailored recommendations, price breakdowns, or next steps to secure a reservation in Singapore!';
-    }
-
-    appendMessage('bot', 'Hello! I\'m your Singapore concierge. Share what you need—recommendations, price clarity, or booking help—and I\'ll jump right in.');
+    appendMessage('bot', WELCOME_MESSAGE);
 
     chatForm.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -596,10 +587,7 @@
       if (!text) return;
       appendMessage('user', text);
       chatInput.value = '';
-      setTimeout(() => {
-        const response = buildResponse(text);
-        appendMessage('bot', response);
-      }, 400);
+      respondWithWelcome();
     });
   </script>
 </body>
