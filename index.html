@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Singapore Stays Concierge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --accent: #f97316;
+      --text-dark: #1f2937;
+      --text-muted: #6b7280;
+      --card-bg: #ffffff;
+      --shadow: 0 15px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-dark);
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 48px 7vw 32px;
+      background: radial-gradient(circle at top left, #6366f1, #4338ca);
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.2), transparent 60%),
+                  radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.25), transparent 70%);
+      pointer-events: none;
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 1;
+      max-width: 840px;
+    }
+
+    h1 {
+      font-size: clamp(2.6rem, 5vw, 3.8rem);
+      line-height: 1.1;
+      margin-bottom: 18px;
+      font-weight: 700;
+    }
+
+    header p {
+      font-size: clamp(1.1rem, 2vw, 1.3rem);
+      color: rgba(255, 255, 255, 0.8);
+      max-width: 560px;
+    }
+
+    main {
+      padding: 40px 7vw 100px;
+      display: grid;
+      gap: 36px;
+    }
+
+    .intro-card {
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(99, 102, 241, 0));
+      border: 1px solid rgba(99, 102, 241, 0.15);
+      border-radius: 24px;
+      padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .intro-card .icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: white;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      color: var(--primary);
+      box-shadow: 0 15px 30px rgba(79, 70, 229, 0.18);
+    }
+
+    .intro-card p {
+      font-size: 1rem;
+      color: var(--text-dark);
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    .hotels-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .hotel-card {
+      background: var(--card-bg);
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hotel-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 25px 45px rgba(15, 23, 42, 0.18);
+    }
+
+    .hotel-card .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(249, 115, 22, 0.12);
+      color: var(--accent);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      width: fit-content;
+    }
+
+    .hotel-card h3 {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    .hotel-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .price {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .chat-launcher {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 360px;
+      max-width: calc(100vw - 48px);
+      background: linear-gradient(160deg, #4f46e5, #c026d3);
+      border-radius: 28px;
+      color: white;
+      box-shadow: 0 30px 60px rgba(76, 29, 149, 0.35);
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      z-index: 20;
+    }
+
+    .chat-launcher:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 40px 80px rgba(76, 29, 149, 0.4);
+    }
+
+    .chat-launcher.collapsed {
+      height: 84px;
+      display: flex;
+      align-items: center;
+      padding: 18px 24px;
+      gap: 18px;
+    }
+
+    .chat-launcher .sparkle {
+      font-size: 34px;
+    }
+
+    .chat-launcher h4 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .chat-launcher p {
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .chat-window {
+      height: 520px;
+      display: flex;
+      flex-direction: column;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+    }
+
+    .chat-header {
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .chat-header .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+    }
+
+    .chat-header h5 {
+      font-size: 1.05rem;
+    }
+
+    .chat-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .message {
+      display: grid;
+      gap: 6px;
+    }
+
+    .message .role {
+      font-size: 0.78rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 600;
+    }
+
+    .message .bubble {
+      padding: 14px 18px;
+      border-radius: 18px;
+      line-height: 1.5;
+      font-size: 0.95rem;
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    .message.user .bubble {
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--primary-dark);
+    }
+
+    .message.bot .bubble {
+      background: rgba(15, 23, 42, 0.65);
+      color: white;
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 10px;
+      padding: 18px 24px 22px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .chat-input input {
+      flex: 1;
+      border: none;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text-dark);
+      outline: none;
+    }
+
+    .chat-input button {
+      border: none;
+      border-radius: 16px;
+      padding: 0 20px;
+      font-size: 1rem;
+      font-weight: 600;
+      background: white;
+      color: var(--primary);
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .chat-input button:hover {
+      background: rgba(255, 255, 255, 0.9);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 720px) {
+      header {
+        padding: 32px 6vw;
+      }
+
+      main {
+        padding: 32px 6vw 120px;
+      }
+
+      .chat-launcher {
+        right: 16px;
+        left: 16px;
+        bottom: 16px;
+        max-width: unset;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>Discover Your Ideal Stay in Singapore</h1>
+      <p>Explore top hotels curated for every kind of traveler—from skyline views in Marina Bay to boutique hideaways on Sentosa. Compare highlights, pricing, and availability at a glance.</p>
+    </div>
+  </header>
+  <main>
+    <section class="intro-card">
+      <div class="icon">💬</div>
+      <p>We can help you book and find the best place to stay, ask me for recommendations or for a price breakdown.</p>
+    </section>
+    <section>
+      <h2 style="font-size:1.8rem; margin-bottom:20px;">Featured Stays</h2>
+      <div class="hotels-grid" id="hotelsGrid"></div>
+    </section>
+  </main>
+
+  <div class="chat-launcher collapsed" id="chatLauncher" aria-expanded="false">
+    <div class="sparkle">✨</div>
+    <div>
+      <h4>Chat with the Concierge</h4>
+      <p>Tap to get custom recommendations and transparent pricing.</p>
+    </div>
+  </div>
+
+  <template id="hotelCard">
+    <article class="hotel-card">
+      <div class="badge">Top Pick</div>
+      <h3 data-hotel-name></h3>
+      <p data-hotel-description></p>
+      <div class="hotel-meta">
+        <span data-hotel-location></span>
+        <span>⭐ <span data-hotel-rating></span></span>
+      </div>
+      <div class="hotel-meta">
+        <span class="price" data-hotel-price></span>
+        <span data-hotel-style></span>
+      </div>
+    </article>
+  </template>
+
+  <div class="chat-launcher" id="chatWindow" hidden>
+    <div class="chat-window">
+      <div class="chat-header">
+        <div class="avatar">🤖</div>
+        <div>
+          <h5>Singapore Concierge</h5>
+          <p style="font-size:0.85rem; color:rgba(255,255,255,0.75);">Your AI travel partner</p>
+        </div>
+      </div>
+      <div class="chat-body" id="chatBody"></div>
+      <form class="chat-input" id="chatForm">
+        <input type="text" id="chatInput" placeholder="Ask for recommendations, price breakdowns, or booking help..." required />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const hotels = [
+      {
+        name: 'Marina Bay Sands',
+        location: 'Marina Bay',
+        rating: 4.8,
+        price: 520,
+        description: 'Iconic infinity pool, panoramic skyline views, and direct access to luxury shopping.',
+        style: 'Luxury Resort',
+        breakdown: {
+          room: 410,
+          taxes: 68,
+          services: 42
+        }
+      },
+      {
+        name: 'The Fullerton Hotel Singapore',
+        location: 'Downtown Core',
+        rating: 4.7,
+        price: 360,
+        description: 'Heritage landmark beside the river with refined rooms and afternoon tea at The Courtyard.',
+        style: 'Heritage Luxury',
+        breakdown: {
+          room: 290,
+          taxes: 40,
+          services: 30
+        }
+      },
+      {
+        name: 'Capella Singapore',
+        location: 'Sentosa Island',
+        rating: 4.9,
+        price: 480,
+        description: 'Lush rainforest setting with spacious villas, Auriga spa, and award-winning dining.',
+        style: 'Secluded Retreat',
+        breakdown: {
+          room: 380,
+          taxes: 55,
+          services: 45
+        }
+      },
+      {
+        name: 'YOTEL Singapore Orchard Road',
+        location: 'Orchard Road',
+        rating: 4.4,
+        price: 180,
+        description: 'Smart cabin rooms with tech-driven conveniences right on the Orchard shopping belt.',
+        style: 'Lifestyle Hotel',
+        breakdown: {
+          room: 140,
+          taxes: 22,
+          services: 18
+        }
+      },
+      {
+        name: 'lyf Funan Singapore',
+        location: 'Civic District',
+        rating: 4.5,
+        price: 150,
+        description: 'Co-living concept with creative common spaces in the heart of a lifestyle mall.',
+        style: 'Co-living',
+        breakdown: {
+          room: 115,
+          taxes: 18,
+          services: 17
+        }
+      },
+      {
+        name: 'The Warehouse Hotel',
+        location: 'Robertson Quay',
+        rating: 4.6,
+        price: 270,
+        description: 'Boutique stay in a restored heritage warehouse with curated dining and riverside views.',
+        style: 'Boutique',
+        breakdown: {
+          room: 210,
+          taxes: 30,
+          services: 30
+        }
+      }
+    ];
+
+    const hotelsGrid = document.getElementById('hotelsGrid');
+    const template = document.getElementById('hotelCard');
+
+    hotels.forEach((hotel, index) => {
+      const card = template.content.cloneNode(true);
+      if (index > 0) {
+        card.querySelector('.badge').textContent = 'Popular Choice';
+      }
+      card.querySelector('[data-hotel-name]').textContent = hotel.name;
+      card.querySelector('[data-hotel-description]').textContent = hotel.description;
+      card.querySelector('[data-hotel-location]').textContent = hotel.location;
+      card.querySelector('[data-hotel-rating]').textContent = hotel.rating;
+      card.querySelector('[data-hotel-price]').textContent = `S$${hotel.price} / night`;
+      card.querySelector('[data-hotel-style]').textContent = hotel.style;
+      hotelsGrid.appendChild(card);
+    });
+
+    const chatLauncher = document.getElementById('chatLauncher');
+    const chatWindow = document.getElementById('chatWindow');
+    const chatBody = document.getElementById('chatBody');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+
+    function toggleChat() {
+      const isCollapsed = chatLauncher.classList.contains('collapsed');
+      if (isCollapsed) {
+        chatLauncher.classList.remove('collapsed');
+        chatLauncher.setAttribute('aria-expanded', 'true');
+        chatLauncher.hidden = true;
+        chatWindow.hidden = false;
+        chatInput.focus();
+      } else {
+        chatLauncher.classList.add('collapsed');
+        chatLauncher.setAttribute('aria-expanded', 'false');
+        chatLauncher.hidden = false;
+        chatWindow.hidden = true;
+      }
+    }
+
+    chatLauncher.addEventListener('click', toggleChat);
+
+    function appendMessage(role, text) {
+      const message = document.createElement('div');
+      message.classList.add('message', role);
+      const roleLabel = document.createElement('div');
+      roleLabel.classList.add('role');
+      roleLabel.textContent = role === 'bot' ? 'Concierge' : 'You';
+      const bubble = document.createElement('div');
+      bubble.classList.add('bubble');
+      bubble.innerHTML = text;
+      message.appendChild(roleLabel);
+      message.appendChild(bubble);
+      chatBody.appendChild(message);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function getHotelByName(input) {
+      return hotels.find(hotel => input.toLowerCase().includes(hotel.name.toLowerCase()));
+    }
+
+    function buildBreakdownText(hotel) {
+      const { room, taxes, services } = hotel.breakdown;
+      const total = room + taxes + services;
+      return `${hotel.name} comes to <strong>S$${total}</strong> per night: room S$${room}, taxes S$${taxes}, services S$${services}.`;
+    }
+
+    function getRecommendation(intent) {
+      switch (intent) {
+        case 'luxury':
+          return 'For a luxe stay, Marina Bay Sands and Capella Singapore both deliver iconic experiences with resort amenities.';
+        case 'budget':
+          return 'For budget-friendly yet stylish options, consider lyf Funan Singapore or YOTEL Singapore Orchard Road.';
+        case 'heritage':
+          return 'If you love heritage charm, The Fullerton Hotel and The Warehouse Hotel offer history-rich stays with modern comforts.';
+        default:
+          return 'Here are a few standouts: Marina Bay Sands for iconic skyline views, Capella Singapore for a secluded retreat, and YOTEL Singapore Orchard Road for smart value on Orchard Road.';
+      }
+    }
+
+    function detectIntent(message) {
+      const lower = message.toLowerCase();
+      if (/(breakdown|price|cost|tax)/.test(lower)) return 'price';
+      if (/(recommend|suggest|where should|best hotel|option)/.test(lower)) {
+        if (/(luxury|high-end|5 star|5-star)/.test(lower)) return 'luxury';
+        if (/(budget|cheap|affordable|value)/.test(lower)) return 'budget';
+        if (/(heritage|history|historic)/.test(lower)) return 'heritage';
+        return 'recommend';
+      }
+      if (/(book|reserve|availability|hold a room)/.test(lower)) return 'booking';
+      return 'general';
+    }
+
+    function buildResponse(message) {
+      const hotel = getHotelByName(message);
+      const intent = detectIntent(message);
+
+      if (intent === 'price' && hotel) {
+        return buildBreakdownText(hotel);
+      }
+
+      if (intent === 'price') {
+        return 'Let me know which hotel caught your eye and I\'ll walk you through the nightly rate, taxes, and service fees.';
+      }
+
+      if (intent === 'recommend') {
+        return getRecommendation();
+      }
+
+      if (['luxury', 'budget', 'heritage'].includes(intent)) {
+        return getRecommendation(intent);
+      }
+
+      if (intent === 'booking') {
+        return 'To reserve, tell me your preferred hotel and travel dates. I\'ll confirm availability, share the total price, and secure the room with your guest details.';
+      }
+
+      if (hotel) {
+        return `${hotel.name} is located in ${hotel.location} with an average rate of S$${hotel.price} per night. Need a price breakdown or want to reserve?`;
+      }
+
+      return 'Ask me for tailored recommendations, price breakdowns, or next steps to secure a reservation in Singapore!';
+    }
+
+    appendMessage('bot', 'Hello! I\'m your Singapore concierge. Share what you need—recommendations, price clarity, or booking help—and I\'ll jump right in.');
+
+    chatForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const text = chatInput.value.trim();
+      if (!text) return;
+      appendMessage('user', text);
+      chatInput.value = '';
+      setTimeout(() => {
+        const response = buildResponse(text);
+        appendMessage('bot', response);
+      }, 400);
+    });
+  </script>
+</body>
+</html>
