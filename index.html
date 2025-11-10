@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1440.0.min.js"></script>
   <style>
     :root {
       --bg: #f5f7fb;
@@ -519,6 +520,12 @@
     const chatInput = document.getElementById('chatInput');
     const WELCOME_MESSAGE = 'Welcome to the Singapore Concierge! How can I assist you today?';
 
+    function formatMessageContent(text) {
+      const wrapper = document.createElement('div');
+      wrapper.textContent = text;
+      return wrapper.innerHTML.replace(/\n/g, '<br>');
+    }
+
     function toggleChat() {
       const isCollapsed = chatLauncher.classList.contains('collapsed');
       if (isCollapsed) {
@@ -545,11 +552,12 @@
       roleLabel.textContent = role === 'bot' ? 'Concierge' : 'You';
       const bubble = document.createElement('div');
       bubble.classList.add('bubble');
-      bubble.innerHTML = text;
+      bubble.innerHTML = formatMessageContent(text);
       message.appendChild(roleLabel);
       message.appendChild(bubble);
       chatBody.appendChild(message);
       chatBody.scrollTop = chatBody.scrollHeight;
+      return message;
     }
 
     function appendLoadingMessage() {
@@ -568,15 +576,91 @@
       return message;
     }
 
-    function respondWithWelcome() {
-      const loadingMessage = appendLoadingMessage();
-      setTimeout(() => {
-        const bubble = loadingMessage.querySelector('.bubble');
-        loadingMessage.classList.remove('loading');
-        bubble.classList.remove('loading');
-        bubble.innerHTML = WELCOME_MESSAGE;
-        chatBody.scrollTop = chatBody.scrollHeight;
-      }, 800);
+    function resolveLoadingMessage(loadingMessage, text) {
+      if (!loadingMessage) {
+        appendMessage('bot', text);
+        return;
+      }
+      loadingMessage.classList.remove('loading');
+      const bubble = loadingMessage.querySelector('.bubble');
+      bubble.classList.remove('loading');
+      bubble.innerHTML = formatMessageContent(text);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    AWS.config.region = 'us-east-1';
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+      IdentityPoolId: 'us-east-1:292d22b1-db20-4e5a-98b3-35d243c4ebfb',
+    });
+
+    const lexRuntimeV2 = new AWS.LexRuntimeV2();
+    const lexSessionId = `concierge-${Date.now()}`;
+    const BOT_ID = 'VPPGVQG71Q';
+    const BOT_ALIAS_ID = 'TSTALIASID';
+    const LOCALE_ID = 'en_US';
+
+    function sendMessageToLex(text, loadingMessage) {
+      const params = {
+        botId: BOT_ID,
+        botAliasId: BOT_ALIAS_ID,
+        localeId: LOCALE_ID,
+        sessionId: lexSessionId,
+        text
+      };
+
+      lexRuntimeV2.recognizeText(params).promise()
+        .then((data) => {
+          let responded = false;
+
+          if (data && Array.isArray(data.messages) && data.messages.length > 0) {
+            data.messages.forEach((message, index) => {
+              if (!message || !message.content) {
+                return;
+              }
+
+              if (!responded && index === 0) {
+                resolveLoadingMessage(loadingMessage, message.content);
+                responded = true;
+              } else {
+                appendMessage('bot', message.content);
+              }
+            });
+          }
+
+          if (!responded) {
+            resolveLoadingMessage(loadingMessage, "I'm sorry, I didn't quite catch that. Could you please rephrase?");
+          }
+
+          if (data && data.sessionState && data.sessionState.intent && data.sessionState.intent.state === 'ReadyForFulfillment') {
+            const slots = data.sessionState.intent.slots || {};
+
+            const appointmentTime = slots.Time &&
+              slots.Time.value &&
+              Array.isArray(slots.Time.value.resolvedValues) &&
+              slots.Time.value.resolvedValues.length > 0
+              ? slots.Time.value.resolvedValues[0]
+              : null;
+
+            const dateSlot = slots.Date && slots.Date.value;
+            const appointmentDate = dateSlot && (
+              (Array.isArray(dateSlot.resolvedValues) && dateSlot.resolvedValues.length > 0 && dateSlot.resolvedValues[0]) ||
+              dateSlot.originalValue ||
+              dateSlot.value
+            );
+
+            if (appointmentTime && appointmentDate) {
+              appendMessage('bot', `Your appointment has been confirmed for ${appointmentDate} at ${appointmentTime}.`);
+            }
+          }
+        })
+        .catch((error) => {
+          console.error('Error calling Lex:', error);
+          resolveLoadingMessage(loadingMessage, 'Oops! Something went wrong. Please try again in a moment.');
+        })
+        .finally(() => {
+          chatInput.disabled = false;
+          chatInput.focus();
+        });
     }
 
     appendMessage('bot', WELCOME_MESSAGE);
@@ -584,10 +668,14 @@
     chatForm.addEventListener('submit', (event) => {
       event.preventDefault();
       const text = chatInput.value.trim();
-      if (!text) return;
+      if (!text) {
+        return;
+      }
       appendMessage('user', text);
+      const loadingMessage = appendLoadingMessage();
       chatInput.value = '';
-      respondWithWelcome();
+      chatInput.disabled = true;
+      sendMessageToLex(text, loadingMessage);
     });
   </script>
 </body>
